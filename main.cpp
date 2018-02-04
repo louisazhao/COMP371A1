@@ -24,8 +24,8 @@ using namespace std;
 
 const unsigned int WIDTH=800, HEIGHT=800;
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0, 0, 10); // camera position
-glm::vec3 c_dir = glm::normalize(glm::vec3(0, 0, -10)); // camera direction
+glm::vec3 c_pos = glm::vec3(0,50, 10); // camera position
+glm::vec3 c_dir = glm::normalize(glm::vec3(0, -50, -10)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
 
@@ -105,8 +105,6 @@ int main() {
         0.5f,-0.5f,0.0f,//right bottom
         0.5f,0.5f,0.0f,//right top
         -0.5f,0.5f,0.0f,//left top
-
-        
     };
     
     ShaderProg groundShader("squarevs.vs","squarefs.fs");//shader program for ground
@@ -224,10 +222,18 @@ int main() {
         groundShader.use();
         groundShader.setMat4("view", view);
         groundShader.setMat4("projection", projection);
-        model=glm::translate(model, glm::vec3(0.5f,0.5f,0.0f));
-        model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
-        groundShader.setMat4("model", model);
-        glDrawArrays(GL_LINE_LOOP, 0, 4);
+        for(int row=0;row<100;row++)
+        {
+            for(int column=0;column<100;column++)
+            {
+                model=glm::mat4(1.0f);
+                model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+                model=glm::translate(model, glm::vec3(-49.5f+(float)column,-49.5f+(float)row,0.0f));
+                //we want the center of the grid at the world origin, therefore, the left bottom point should be at (-50,-50,0), consequently, the first offset is -50-(-0.5)=-49.5, same for the row
+                groundShader.setMat4("model", model);
+                glDrawArrays(GL_LINE_LOOP, 0, 4);
+            }
+        }
         
         
         //draw horse
@@ -241,8 +247,6 @@ int main() {
         model=glm::translate(model, bodyPosition);
         model=glm::scale(model, glm::vec3(4.0f,1.5f,2.0f));
         horseShader.setMat4("model", model);
-        //horseShader.setMat4("view", view);
-        //horseShader.setMat4("projection", projection);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.2f,0.1f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //flu
