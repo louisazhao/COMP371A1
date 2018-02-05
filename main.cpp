@@ -26,6 +26,8 @@ const unsigned int WIDTH=800, HEIGHT=800;
 float moveOnX=0,moveOnZ=0;
 const float minMove=-40.0f,maxMove=40.0f;
 float userScale=1.0f;
+float userRotate=0.0f;
+glm::vec3 rotateOri=glm::vec3(0.0f,1.0f,0.0f);
 
 
 // ---- VIEW MATRIX global variables -----
@@ -42,7 +44,6 @@ void updateView()
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-    //std::cout << key << std::endl;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
     
@@ -73,6 +74,36 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         userScale-=0.5;
     }
+    if(key==GLFW_KEY_A&&action==GLFW_PRESS)
+    {
+            moveOnX+=-1.0f;
+    }
+    if(key==GLFW_KEY_D&&action==GLFW_PRESS)
+    {
+        moveOnX+=1.0f;
+    }
+    if(key==GLFW_KEY_W&&action==GLFW_PRESS)
+    {
+        moveOnZ+=-1.0f;
+    }
+    if(key==GLFW_KEY_S&&action==GLFW_PRESS)
+    {
+        moveOnZ+=1.0f;
+    }
+    if(key==GLFW_KEY_P&&action==GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);//point mode
+    }
+    if(key==GLFW_KEY_L&&action==GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//point mode
+    }
+    
+    if(key==GLFW_KEY_T&&action==GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);//wireframe mode
+    }
+    
 
 }
 
@@ -325,7 +356,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //flu
         model=glm::mat4(1.0f);//reset
-       model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(fluPosition[0]+moveOnX,fluPosition[1],fluPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -402,6 +433,7 @@ int main() {
         model=glm::translate(model, glm::vec3(headPosition[0]+moveOnX,headPosition[1],headPosition[2]+moveOnZ));
         model=glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
         model=glm::scale(model, glm::vec3(1.5f,0.5f,0.5f));
+        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.4f,0.3f,0.3f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
