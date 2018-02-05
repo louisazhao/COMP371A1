@@ -5,5 +5,5 @@ uniform vec4 lineColor;
 
 void main()
 {
-    FragColor=vec4(1.0f,1.0f,1.0f,1.0f);
+    FragColor=lineColor;
 }

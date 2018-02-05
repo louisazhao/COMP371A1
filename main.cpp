@@ -24,8 +24,8 @@ using namespace std;
 
 const unsigned int WIDTH=800, HEIGHT=800;
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0,50, 10); // camera position
-glm::vec3 c_dir = glm::normalize(glm::vec3(0, -50, -10)); // camera direction
+glm::vec3 c_pos = glm::vec3(0,20, 10); // camera position
+glm::vec3 c_dir = glm::normalize(glm::vec3(0, -20, -10)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
 
@@ -107,8 +107,24 @@ int main() {
         -0.5f,0.5f,0.0f,//left top
     };
     
+    float coordinate[]={
+        
+        0.0f,0.0f,0.0f,//left bottom
+        1.0f,0.0f,0.0f,//right bottom
+        
+        
+        0.0f,0.0f,0.0f,//y axis
+        0.0f,1.0f,0.0f,
+        
+        0.0f,0.0f,0.0f,//z axis
+        0.0f,0.0f,1.0f
+        
+        
+    };
+    
     ShaderProg groundShader("squarevs.vs","squarefs.fs");//shader program for ground
     ShaderProg horseShader("horsevs.vs","horsefs.fs");//shader program for horse
+    ShaderProg coordinateShader("squarevs.vs","squarefs.fs");//shader program for coordinate
     
     
     //vertices for a cube
@@ -157,22 +173,22 @@ int main() {
     };
     
     //world space position of different parts of the horse
-    glm::vec3 bodyPosition=glm::vec3(0.0f,3.0f,0.0f);//body
-    glm::vec3 fluPosition=glm::vec3(-1.5f,2.0f,-0.5f);//front-left-upper leg
-    glm::vec3 fllPosition=glm::vec3(-1.5f,1.0f,-0.5f);//front-left-lower leg
-    glm::vec3 fruPosition=glm::vec3(-1.5f,2.0f,0.5f);//front-right-upper leg
-    glm::vec3 frlPosition=glm::vec3(-1.5f,1.0f,0.5f);//front-right-lower leg
-    glm::vec3 bluPosition=glm::vec3(1.5f,2.0f,-0.5f);//back-left-upper leg
-    glm::vec3 bllPosition=glm::vec3(1.5f,1.0f,-0.5f);//back-left-lower leg
-    glm::vec3 bruPosition=glm::vec3(1.5f,2.0f,0.5f);//back-right-upper leg
-    glm::vec3 brlPosition=glm::vec3(1.5f,1.0f,0.5f);//back-right-lower leg
-    glm::vec3 neckPosition=glm::vec3(-2.5f,3.5f,0.0f);//neck
-    glm::vec3 headPosition=glm::vec3(-4.0f,3.5f,0.0f);//head
+    glm::vec3 bodyPosition=glm::vec3(0.0f,2.5f,0.0f);//body
+    glm::vec3 fluPosition=glm::vec3(-1.5f,1.5f,-0.5f);//front-left-upper leg
+    glm::vec3 fllPosition=glm::vec3(-1.5f,0.5f,-0.5f);//front-left-lower leg
+    glm::vec3 fruPosition=glm::vec3(-1.5f,1.5f,0.5f);//front-right-upper leg
+    glm::vec3 frlPosition=glm::vec3(-1.5f,0.5f,0.5f);//front-right-lower leg
+    glm::vec3 bluPosition=glm::vec3(1.5f,1.5f,-0.5f);//back-left-upper leg
+    glm::vec3 bllPosition=glm::vec3(1.5f,0.5f,-0.5f);//back-left-lower leg
+    glm::vec3 bruPosition=glm::vec3(1.5f,1.5f,0.5f);//back-right-upper leg
+    glm::vec3 brlPosition=glm::vec3(1.5f,0.5f,0.5f);//back-right-lower leg
+    glm::vec3 neckPosition=glm::vec3(-2.5f,3.0f,0.0f);//neck
+    glm::vec3 headPosition=glm::vec3(-4.0f,3.0f,0.0f);//head
     
     //VAO
-    GLuint VAOs[2], VBOs[2];//two VAOs and VBOs, one for the ground, one for the horse
-    glGenVertexArrays(2,VAOs);
-    glGenBuffers(2,VBOs);
+    GLuint VAOs[3], VBOs[3];//two VAOs and VBOs, one for the ground, one for the horse
+    glGenVertexArrays(3,VAOs);
+    glGenBuffers(3,VBOs);
     
     
     //ground
@@ -183,16 +199,21 @@ int main() {
     glEnableVertexAttribArray(0);
     
     
-    //horse
+    //coordinates
     glBindVertexArray(VAOs[1]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[1]);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(coordinate),coordinate,GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     
     
+    //horse
+    glBindVertexArray(VAOs[2]);
+    glBindBuffer(GL_ARRAY_BUFFER,VBOs[2]);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
+    glEnableVertexAttribArray(0);
 
-    
     
     
     //game loop
@@ -230,14 +251,46 @@ int main() {
                 model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
                 model=glm::translate(model, glm::vec3(-49.5f+(float)column,-49.5f+(float)row,0.0f));
                 //we want the center of the grid at the world origin, therefore, the left bottom point should be at (-50,-50,0), consequently, the first offset is -50-(-0.5)=-49.5, same for the row
+                groundShader.setVec4("lineColor", 1.0f,1.0f,1.0f,1.0f);
                 groundShader.setMat4("model", model);
                 glDrawArrays(GL_LINE_LOOP, 0, 4);
             }
         }
         
         
-        //draw horse
+        //draw coordinates
         glBindVertexArray(VAOs[1]);
+        coordinateShader.use();
+        coordinateShader.setMat4("view", view);
+        coordinateShader.setMat4("projection", projection);
+        for(int i=0;i<5;i++)
+        {
+            model=glm::mat4(1.0f);
+            coordinateShader.setVec4("lineColor", 1.0, 0.0f, 0.0f, 1.0f);
+            model=glm::translate(model, glm::vec3(0.0f+(float)i,0.0f,0.02f));//give the transform a little offset, so it wont be hiden from the grid
+            coordinateShader.setMat4("model", model);
+            glDrawArrays(GL_LINES, 0, 2);
+        }
+        for(int i=0;i<5;i++)
+        {
+            model=glm::mat4(1.0f);
+            coordinateShader.setVec4("lineColor", 0.0, 1.0f, 0.0f, 1.0f);
+            model=glm::translate(model, glm::vec3(0.0f,0.0f+(float)i,0.02f));
+            coordinateShader.setMat4("model", model);
+            glDrawArrays(GL_LINES, 2, 2);
+        }
+        for(int i=0;i<5;i++)
+        {
+            model=glm::mat4(1.0f);
+            coordinateShader.setVec4("lineColor", 0.0, 0.0f, 1.0f, 1.0f);
+            model=glm::translate(model, glm::vec3(0.0f,0.0f,0.0f+(float)i));
+            coordinateShader.setMat4("model", model);
+            glDrawArrays(GL_LINES, 4, 2);
+        }
+
+        
+        //draw horse
+        glBindVertexArray(VAOs[2]);
         horseShader.use();
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
