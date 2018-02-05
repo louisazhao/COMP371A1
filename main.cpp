@@ -25,6 +25,7 @@ using namespace std;
 const unsigned int WIDTH=800, HEIGHT=800;
 float moveOnX=0,moveOnZ=0;
 const float minMove=-40.0f,maxMove=40.0f;
+float userScale=1.0f;
 
 
 // ---- VIEW MATRIX global variables -----
@@ -63,6 +64,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         //generating random location in the grid
         moveOnX=minMove + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(maxMove-minMove)));
         moveOnZ=minMove + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(maxMove-minMove)));
+    }
+    if(key==GLFW_KEY_U&&action==GLFW_PRESS)
+    {
+        userScale+=0.5;
+    }
+    if(key==GLFW_KEY_J&&action==GLFW_PRESS)
+    {
+        userScale-=0.5;
     }
 
 }
@@ -308,6 +317,7 @@ int main() {
         //----------------
         //body
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(bodyPosition[0]+moveOnX,bodyPosition[1],bodyPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(4.0f,1.5f,2.0f));
         horseShader.setMat4("model", model);
@@ -315,6 +325,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //flu
         model=glm::mat4(1.0f);//reset
+       model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(fluPosition[0]+moveOnX,fluPosition[1],fluPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -322,6 +333,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //fll
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(fllPosition[0]+moveOnX,fllPosition[1],fllPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -329,6 +341,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //fru
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(fruPosition[0]+moveOnX,fruPosition[1],fruPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -336,6 +349,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //frl
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(frlPosition[0]+moveOnX,frlPosition[1],frlPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -343,6 +357,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //blu
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(bluPosition[0]+moveOnX,bluPosition[1],bluPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -350,6 +365,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //bll
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(bllPosition[0]+moveOnX,bllPosition[1],bllPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -357,6 +373,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //bru
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(bruPosition[0]+moveOnX,bruPosition[1],bruPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -364,6 +381,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //brl
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(brlPosition[0]+moveOnX,brlPosition[1],brlPosition[2]+moveOnZ));
         model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
         horseShader.setMat4("model", model);
@@ -371,6 +389,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //neck
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(neckPosition[0]+moveOnX,neckPosition[1],neckPosition[2]+moveOnZ));
         model=glm::rotate(model, glm::radians(-30.0f), glm::vec3(0.0f,0.0f,1.0f));
         model=glm::scale(model, glm::vec3(2.5f,1.0f,0.5f));
@@ -379,6 +398,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         //head
         model=glm::mat4(1.0f);//reset
+        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
         model=glm::translate(model, glm::vec3(headPosition[0]+moveOnX,headPosition[1],headPosition[2]+moveOnZ));
         model=glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
         model=glm::scale(model, glm::vec3(1.5f,0.5f,0.5f));
