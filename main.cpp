@@ -31,8 +31,8 @@ glm::vec3 rotateOri=glm::vec3(0.0f,1.0f,0.0f);
 
 
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0,10, 10); // camera position
-glm::vec3 c_dir = glm::normalize(glm::vec3(0, -10, -10)); // camera direction
+glm::vec3 c_pos = glm::vec3(0,50, 10); // camera position
+glm::vec3 c_dir = glm::normalize(glm::vec3(0, -50, -10)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
 
@@ -46,16 +46,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-    if (key == GLFW_KEY_DOWN)
+    if(key==GLFW_KEY_LEFT)//world orientation to right
     {
-        //c_pos.z += 1;
+        c_pos.x-=1;
+        updateView();
+    }
+    if(key==GLFW_KEY_RIGHT)//world orientation to left
+    {
+        c_pos.x+=1;
+        updateView();
+    }
+    if (key == GLFW_KEY_DOWN)//world orientation down
+    {
         c_pos.y-=1;
         updateView();
     }
-    if (key == GLFW_KEY_UP)
+    if (key == GLFW_KEY_UP)//world orientation up
     {
-        //c_pos.z -= 1;
         c_pos.y+=1;
+        updateView();
+    }
+    if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
+    {
+        c_pos = glm::vec3(0,50, 10);
         updateView();
     }
     if(key==GLFW_KEY_SPACE&& action == GLFW_PRESS)//randomly change the position of the horse on the grid
