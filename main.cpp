@@ -28,6 +28,7 @@ const float minMove=-40.0f,maxMove=40.0f;
 float userScale=1.0f;
 float userRotate=0.0f;
 glm::vec3 rotateOri=glm::vec3(0.0f,1.0f,0.0f);
+float cameraRotate=10.0f;
 
 
 // ---- VIEW MATRIX global variables -----
@@ -48,22 +49,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
     if(key==GLFW_KEY_LEFT)//world orientation to right
     {
-        c_pos.x-=1;
+        c_pos-=glm::normalize(glm::cross(c_dir, c_up));
         updateView();
     }
     if(key==GLFW_KEY_RIGHT)//world orientation to left
     {
-        c_pos.x+=1;
+        c_pos+=glm::normalize(glm::cross(c_dir, c_up));
         updateView();
     }
-    if (key == GLFW_KEY_DOWN)//world orientation down
+    if (key == GLFW_KEY_DOWN)//world orientation rotate Ry
     {
-        c_pos.y-=1;
+        c_pos-=c_dir;
         updateView();
     }
-    if (key == GLFW_KEY_UP)//world orientation up
+    if (key == GLFW_KEY_UP)//world orientation rotate -Ry
     {
-        c_pos.y+=1;
+        c_pos+=c_dir;
         updateView();
     }
     if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
