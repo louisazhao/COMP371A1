@@ -3,6 +3,7 @@
 //  COMP371A1
 //
 //  Created by Zhao Rui on 2018-02-02.
+//  Modified from https://learnopengl.com/
 //  Copyright © 2018 Zhao Rui. All rights reserved.
 //
 

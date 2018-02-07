@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include "ShaderProg.h"
+#include "DrawHorse.hpp"
 
 
 // GLEW
@@ -42,7 +43,7 @@ bool firstMouse=true;
 
 
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0,0, 3); // camera position
+glm::vec3 c_pos = glm::vec3(0,0, 30); // camera position
 glm::vec3 c_dir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
@@ -79,7 +80,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
     {
-        c_pos = glm::vec3(0,50, 10);
+        c_pos = glm::vec3(0,0, 30);
         updateView();
     }
     if(key==GLFW_KEY_SPACE&& action == GLFW_PRESS)//randomly change the position of the horse on the grid
@@ -303,8 +304,8 @@ int main() {
     
     float coordinate[]={
         
-        0.0f,0.0f,0.0f,//left bottom
-        1.0f,0.0f,0.0f,//right bottom
+        0.0f,0.0f,0.0f,//x axis
+        1.0f,0.0f,0.0f,
         
         
         0.0f,0.0f,0.0f,//y axis
@@ -366,18 +367,6 @@ int main() {
         -0.5f,  0.5f, -0.5f
     };
     
-    //world space position of different parts of the horse
-    glm::vec3 bodyPosition=glm::vec3(0.0f,2.5f,0.0f);//body
-    glm::vec3 fluPosition=glm::vec3(-1.5f,1.5f,-0.5f);//front-left-upper leg
-    glm::vec3 fllPosition=glm::vec3(-1.5f,0.5f,-0.5f);//front-left-lower leg
-    glm::vec3 fruPosition=glm::vec3(-1.5f,1.5f,0.5f);//front-right-upper leg
-    glm::vec3 frlPosition=glm::vec3(-1.5f,0.5f,0.5f);//front-right-lower leg
-    glm::vec3 bluPosition=glm::vec3(1.5f,1.5f,-0.5f);//back-left-upper leg
-    glm::vec3 bllPosition=glm::vec3(1.5f,0.5f,-0.5f);//back-left-lower leg
-    glm::vec3 bruPosition=glm::vec3(1.5f,1.5f,0.5f);//back-right-upper leg
-    glm::vec3 brlPosition=glm::vec3(1.5f,0.5f,0.5f);//back-right-lower leg
-    glm::vec3 neckPosition=glm::vec3(-2.5f,3.0f,0.0f);//neck
-    glm::vec3 headPosition=glm::vec3(-4.0f,3.0f,0.0f);//head
     
     //VAO
     GLuint VAOs[3], VBOs[3];//two VAOs and VBOs, one for the ground, one for the horse
@@ -461,7 +450,7 @@ int main() {
         {
             model=glm::mat4(1.0f);
             coordinateShader.setVec4("lineColor", 1.0, 0.0f, 0.0f, 1.0f);
-            model=glm::translate(model, glm::vec3(0.0f+(float)i,0.0f,0.02f));//give the transform a little offset, so it wont be hiden from the grid
+            model=glm::translate(model, glm::vec3(0.0f+(float)i,0.0f+0.02,0.0f));//give the transform a little offset on Y axis, so it wont be hiden from the grid
             coordinateShader.setMat4("model", model);
             glDrawArrays(GL_LINES, 0, 2);
         }
@@ -469,7 +458,7 @@ int main() {
         {
             model=glm::mat4(1.0f);
             coordinateShader.setVec4("lineColor", 0.0, 1.0f, 0.0f, 1.0f);
-            model=glm::translate(model, glm::vec3(0.0f,0.0f+(float)i,0.02f));
+            model=glm::translate(model, glm::vec3(0.0f,0.0f+(float)i+0.02,0.0f));//give the transform a little offset on Y axis, so it wont be hiden from the grid
             coordinateShader.setMat4("model", model);
             glDrawArrays(GL_LINES, 2, 2);
         }
@@ -477,7 +466,7 @@ int main() {
         {
             model=glm::mat4(1.0f);
             coordinateShader.setVec4("lineColor", 0.0, 0.0f, 1.0f, 1.0f);
-            model=glm::translate(model, glm::vec3(0.0f,0.0f,0.0f+(float)i));
+            model=glm::translate(model, glm::vec3(0.0f,0.0f+0.02,0.0f+(float)i));//give the transform a little offset on Y axis, so it wont be hiden from the grid
             coordinateShader.setMat4("model", model);
             glDrawArrays(GL_LINES, 4, 2);
         }
@@ -488,109 +477,72 @@ int main() {
         horseShader.use();
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
-        //----------------
+        //--------------------------------------------------
         //body
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(bodyPosition[0]+moveOnX,bodyPosition[1],bodyPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(4.0f,1.5f,2.0f));
+        model=drawHorse(BODY,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.2f,0.1f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //flu
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(fluPosition[0]+moveOnX,fluPosition[1],fluPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(FLU,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //fll
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(fllPosition[0]+moveOnX,fllPosition[1],fllPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(FLL,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //fru
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(fruPosition[0]+moveOnX,fruPosition[1],fruPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(FRU,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //frl
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(frlPosition[0]+moveOnX,frlPosition[1],frlPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(FRL,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //blu
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(bluPosition[0]+moveOnX,bluPosition[1],bluPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(BLU,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //bll
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(bllPosition[0]+moveOnX,bllPosition[1],bllPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(BLL,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //bru
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(bruPosition[0]+moveOnX,bruPosition[1],bruPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(BRU,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //brl
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(brlPosition[0]+moveOnX,brlPosition[1],brlPosition[2]+moveOnZ));
-        model=glm::scale(model, glm::vec3(0.5f,1.0f,0.5f));
+        model=drawHorse(BRL,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //neck
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(neckPosition[0]+moveOnX,neckPosition[1],neckPosition[2]+moveOnZ));
-        model=glm::rotate(model, glm::radians(-30.0f), glm::vec3(0.0f,0.0f,1.0f));
-        model=glm::scale(model, glm::vec3(2.5f,1.0f,0.5f));
+        model=drawHorse(NECK,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.4f,0.2f,0.6f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         //head
-        model=glm::mat4(1.0f);//reset
-        model=glm::rotate(model, glm::radians(userRotate), rotateOri);
-        model=glm::scale(model, glm::vec3(userScale,userScale,userScale));
-        model=glm::translate(model, glm::vec3(headPosition[0]+moveOnX,headPosition[1],headPosition[2]+moveOnZ));
-        model=glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
-        model=glm::scale(model, glm::vec3(1.5f,0.5f,0.5f));
+        model=drawHorse(HEAD,userRotate,rotateOri,userScale,moveOnX,moveOnZ);
         horseShader.setMat4("model", model);
         horseShader.setVec4("partColor", glm::vec4(0.4f,0.3f,0.3f,1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        
         
         glfwSwapBuffers(window);
         glfwPollEvents();
