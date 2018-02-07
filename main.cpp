@@ -9,6 +9,7 @@
 #include <iostream>
 #include "ShaderProg.h"
 
+
 // GLEW
 #define GLEW_STATIC
 #include </usr/local/Cellar/glew/2.1.0/include/GL/glew.h>
@@ -30,10 +31,19 @@ float userRotate=0.0f;
 glm::vec3 rotateOri=glm::vec3(0.0f,1.0f,0.0f);
 float cameraRotate=10.0f;
 
+//camera attributes
+float yaw=-90.0f;
+float pitch=0.0f;
+float lastX=WIDTH/2.0f;//camera first set to the origin
+float lastY=HEIGHT/2.0f;//camera first set to the origin
+float fov=45.0f;//perspective angle
+bool leftMouseButton=false, middleMouseButton=false, rightMouseButton=false;//varibles for detecting the mouse button action
+bool firstMouse=true;
+
 
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0,50, 10); // camera position
-glm::vec3 c_dir = glm::normalize(glm::vec3(0, -50, -10)); // camera direction
+glm::vec3 c_pos = glm::vec3(0,0, 3); // camera position
+glm::vec3 c_dir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
 
@@ -57,14 +67,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         c_pos+=glm::normalize(glm::cross(c_dir, c_up));
         updateView();
     }
-    if (key == GLFW_KEY_DOWN)//world orientation rotate Ry
+    if (key == GLFW_KEY_DOWN)//world orientation Ry
     {
-        c_pos-=c_dir;
+        c_pos.y+=1;
         updateView();
     }
-    if (key == GLFW_KEY_UP)//world orientation rotate -Ry
+    if (key == GLFW_KEY_UP)//world orientation -Ry
     {
-        c_pos+=c_dir;
+        c_pos.y-=1;
         updateView();
     }
     if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
@@ -150,9 +160,90 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);//wireframe mode
     }
-    
-
 }
+
+//call back funtion for mouse button and movement
+void mouse_button_callback(GLFWwindow* window, int key, int action, int mode)
+{
+    if(key==GLFW_MOUSE_BUTTON_RIGHT&&action==GLFW_PRESS)
+    {
+        rightMouseButton=true;
+    }
+    if(key==GLFW_MOUSE_BUTTON_MIDDLE&&action==GLFW_PRESS)
+    {
+        middleMouseButton=true;
+    }
+    if(key==GLFW_MOUSE_BUTTON_LEFT&&action==GLFW_PRESS)
+    {
+        leftMouseButton=true;
+    }
+    if(key==GLFW_MOUSE_BUTTON_RIGHT&&action==GLFW_RELEASE)
+    {
+        rightMouseButton=false;
+    }
+    if(key==GLFW_MOUSE_BUTTON_MIDDLE&&action==GLFW_RELEASE)
+    {
+        middleMouseButton=false;
+    }
+    if(key==GLFW_MOUSE_BUTTON_LEFT&&action==GLFW_RELEASE)
+    {
+        leftMouseButton=false;
+    }
+}
+
+void mouse_callback(GLFWwindow* window, double xPos, double yPos)//keep track of the position of the cursor
+{
+    if(firstMouse)
+    {
+        lastX=xPos;
+        lastY=yPos;
+        firstMouse=false;
+    }
+    
+    float xOffset=xPos-lastX;
+    float yOffset=lastY-yPos;
+    lastX=xPos;
+    lastY=yPos;
+    
+    float sensitivity=0.05f;
+    xOffset*=sensitivity;
+    yOffset*=sensitivity;
+    
+    if(rightMouseButton)//yaw
+    {
+        yaw+=xOffset;
+    }
+    if(middleMouseButton)//pitch
+    {
+        pitch+=yOffset;
+        if(pitch>89.0f)
+        {
+            pitch=89.0f;
+        }
+        if(pitch<-89.0f)
+        {
+            pitch=-89.0f;
+        }
+    }
+    if(leftMouseButton)//zoom in and out by adjusting the fov degree
+    {
+        if(fov>=1.0f&&fov<=45.0f)
+            fov-=yOffset*0.1;
+        if(fov<=1.0f)
+            fov=1.0f;
+        if(fov>=45.0f)
+            fov=45.0f;
+        
+    }
+    
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    c_dir = glm::normalize(front);
+}
+
+
 
 int main() {
     //initialize glfw
@@ -179,6 +270,11 @@ int main() {
     glfwMakeContextCurrent(window);
     glewExperimental=GL_TRUE;
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     
     //configure viewport
     int screenWidth, screenHeight;
@@ -329,7 +425,7 @@ int main() {
         
         //projection matrix
         glm::mat4 projection=glm::mat4(1.0f);
-        projection=glm::perspective(45.0f, (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
+        projection=glm::perspective(fov, (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
 
         
         //initialize model matrix
@@ -496,17 +592,12 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         
-        
-        
-        
-        
-        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     
-    //glDeleteVertexArrays(1,&VAO);
-    //glDeleteBuffers(1,&VBO);
+    glDeleteVertexArrays(3,VAOs);
+    glDeleteBuffers(3,VBOs);
     
     glfwTerminate();
     return 0;
