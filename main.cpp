@@ -24,7 +24,7 @@
 #include </usr/local/Cellar/glm/0.9.8.5/include/glm/gtc/type_ptr.hpp>
 using namespace std;
 
-const unsigned int WIDTH=800, HEIGHT=800;
+unsigned int WIDTH=800, HEIGHT=800;
 float moveOnX=0,moveOnZ=0;
 const float minMove=-40.0f,maxMove=40.0f;
 float userScale=1.0f;
@@ -43,14 +43,26 @@ bool firstMouse=true;
 
 
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0,0, 30); // camera position
-glm::vec3 c_dir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)); // camera direction
+glm::vec3 c_pos = glm::vec3(0.0f,10.0f, 30.0f); // camera position
+glm::vec3 c_dir = glm::normalize(glm::vec3(0.0f, -10.0f, -30.0f)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
+glm::mat4 projection;
+glm::mat4 model;
 
 void updateView()
 {
     view = glm::lookAt(c_pos, c_pos + c_dir, c_up);
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height)
+{
+    //projection=glm::perspective(fov, (float)width/(float)height, 0.1f, 100.0f);
+    WIDTH=width;
+    HEIGHT=height;
+    int width_,height_;
+    glfwGetFramebufferSize(window, &width_, &height_);
+    glViewport(0, 0, width_, height_);
 }
 
 // Is called whenever a key is pressed/released via GLFW
@@ -61,27 +73,41 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if(key==GLFW_KEY_LEFT)//world orientation to right
     {
         c_pos-=glm::normalize(glm::cross(c_dir, c_up));
-        updateView();
+        //updateView();
     }
     if(key==GLFW_KEY_RIGHT)//world orientation to left
     {
         c_pos+=glm::normalize(glm::cross(c_dir, c_up));
-        updateView();
+        //updateView();
     }
     if (key == GLFW_KEY_DOWN)//world orientation Ry
     {
         c_pos.y+=1;
-        updateView();
+        //updateView();
     }
     if (key == GLFW_KEY_UP)//world orientation -Ry
     {
         c_pos.y-=1;
-        updateView();
+        //updateView();
     }
     if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
     {
-        c_pos = glm::vec3(0,0, 30);
-        updateView();
+        c_pos = glm::vec3(0.0f,10.0f, 30.0f);
+        c_dir = glm::vec3(0.0f, -10.0f, -30.0f); // camera direction
+        c_up = glm::vec3(0, 1, 0);
+        yaw=-90.0f;
+        pitch=0.0f;
+        lastX=WIDTH/2.0f;//camera first set to the origin
+        lastY=HEIGHT/2.0f;//camera first set to the origin
+        rotateOri=glm::vec3(0.0f,1.0f,0.0f);
+        fov=45.0f;
+        moveOnX=0;
+        moveOnZ=0;
+        userScale=1.0f;
+        userRotate=0.0f;
+        model=glm::mat4(1.0f);
+        
+        //updateView();
     }
     if(key==GLFW_KEY_SPACE&& action == GLFW_PRESS)//randomly change the position of the horse on the grid
     {
@@ -150,10 +176,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if(key==GLFW_KEY_P&&action==GLFW_PRESS)
     {
+        glPointSize(10.0f);//make the points more visible
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);//point mode
     }
     if(key==GLFW_KEY_L&&action==GLFW_PRESS)
     {
+        glLineWidth(10.0f);//make the lines more visible
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//point mode
     }
     
@@ -194,12 +222,16 @@ void mouse_button_callback(GLFWwindow* window, int key, int action, int mode)
 
 void mouse_callback(GLFWwindow* window, double xPos, double yPos)//keep track of the position of the cursor
 {
+    //cout<<"here"<<endl;
+    
     if(firstMouse)
     {
+        cout<<"here"<<endl;
         lastX=xPos;
         lastY=yPos;
         firstMouse=false;
     }
+     
     
     float xOffset=xPos-lastX;
     float yOffset=lastY-yPos;
@@ -212,10 +244,12 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)//keep track of
     
     if(rightMouseButton)//yaw
     {
+        //cout<<"here"<<endl;
         yaw+=xOffset;
     }
     if(middleMouseButton)//pitch
     {
+        //cout<<"here"<<endl;
         pitch+=yOffset;
         if(pitch>89.0f)
         {
@@ -228,13 +262,13 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)//keep track of
     }
     if(leftMouseButton)//zoom in and out by adjusting the fov degree
     {
+        //cout<<"here"<<endl;
         if(fov>=1.0f&&fov<=45.0f)
             fov-=yOffset*0.1;
         if(fov<=1.0f)
             fov=1.0f;
         if(fov>=45.0f)
             fov=45.0f;
-        
     }
     
     glm::vec3 front;
@@ -273,14 +307,17 @@ int main() {
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
     
     // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     
+    /*
     //configure viewport
     int screenWidth, screenHeight;
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
     glViewport(0, 0, screenWidth, screenHeight);
+     */
     
     //initialize glew
     if(GLEW_OK!=glewInit())
@@ -413,12 +450,12 @@ int main() {
 
         
         //projection matrix
-        glm::mat4 projection=glm::mat4(1.0f);
+        projection=glm::mat4(1.0f);
         projection=glm::perspective(fov, (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
 
         
         //initialize model matrix
-        glm::mat4 model=glm::mat4(1.0f);
+        model=glm::mat4(1.0f);
         
         
         //draw ground
